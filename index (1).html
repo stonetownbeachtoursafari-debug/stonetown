@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stone Town Beach Tours - Control Panel</title>
+<style>
+:root{--bg:#f3f1ec;--card:#fff;--ink:#16222b;--mut:#5d6b75;--line:#dcd8cf;--side:#0f3b4a;--acc:#0e7490;--acc2:#0b5c73;--ok:#15803d;--okb:#dcfce7;--pe:#b45309;--peb:#fef3c7;--no:#b91c1c;--nob:#fee2e2;--bt:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#10181d;--card:#18232a;--ink:#e8eef1;--mut:#9aabb5;--line:#2a3a44;--side:#0a2630;--acc:#22b8d6;--acc2:#4fcbe4;--ok:#4ade80;--okb:#12341f;--pe:#fbbf24;--peb:#3a2c0c;--no:#f87171;--nob:#3b1717;--bt:#06222b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,serif;min-height:100vh;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.hidden{display:none!important}
+#app{display:flex;min-height:100vh}
+.side{width:260px;background:var(--side);color:#e6f1f4;padding:22px;flex-shrink:0}
+.side h2{margin:0 0 4px;font-size:21px;line-height:1.2}
+.sub{font-size:12px;color:#9fc3cd;font-family:system-ui,sans-serif;margin-bottom:18px;letter-spacing:.08em}
+.side p{font-family:system-ui,sans-serif;font-size:12.5px;word-break:break-all;margin:8px 0;color:#cfe3e8}
+.side .tag{background:rgba(255,255,255,.1);padding:8px;border-radius:6px}
+.side .out{background:rgba(255,255,255,.15);color:#fff;margin-top:10px;width:100%}
+.main{flex:1;padding:26px;min-width:0;font-family:system-ui,sans-serif}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:20px}
+h1,h3{font-family:Georgia,serif;margin:0}
+h1{font-size:24px}h3{margin-bottom:14px}
+.badge-cloud{background:var(--ok);color:var(--bt);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px}
+.stat b{display:block;font-size:24px;font-family:Georgia,serif}
+.stat span{font-size:12.5px;color:var(--mut)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:12px}
+label{font-size:12.5px;color:var(--mut);display:block;margin-bottom:3px}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;font-size:15px;background:var(--bg);color:var(--ink);font-family:inherit}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+button{background:var(--acc);color:var(--bt);border:0;padding:11px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px}
+button:hover{background:var(--acc2)}
+button:disabled{opacity:.6}
+.sec{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.sec:hover{background:var(--bg)}
+.mini{padding:5px 10px;font-size:12px;margin:2px}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card);margin-bottom:24px}
+table{width:100%;border-collapse:collapse;min-width:900px}
+th,td{padding:12px;text-align:left;border-bottom:1px solid var(--line);font-size:14px}
+th{color:var(--mut);font-weight:600;background:var(--bg)}
+.b{padding:3px 9px;border-radius:4px;font-size:12px;font-weight:700}
+.Pending{background:var(--peb);color:var(--pe)}.Confirm{background:var(--okb);color:var(--ok)}.Cancel{background:var(--nob);color:var(--no)}
+.act .c{background:var(--ok)}.act .x{background:var(--no)}
+.empty{padding:22px;text-align:center;color:var(--mut)}
+.note{background:var(--peb);color:var(--pe);padding:12px;border-radius:8px;margin-bottom:16px;font-size:14px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--side);color:#fff;padding:12px 18px;border-radius:8px;font-size:14px;max-width:90%;display:none;z-index:99;font-family:system-ui,sans-serif}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;font-family:system-ui,sans-serif}
+.box{background:var(--card);border-radius:12px;padding:24px;width:100%;max-width:380px}
+.box p{color:var(--mut);font-size:13.5px;margin:0 0 14px}
+.row{display:flex;gap:8px;margin-top:14px}.row button{flex:1}
+.err{color:var(--no);font-size:13px;min-height:18px;margin-top:8px}
+.log{max-height:240px;overflow:auto;font-size:13px}
+.log div{padding:6px 0;border-bottom:1px solid var(--line)}
+.log small,.mut{color:var(--mut)}
+@media (max-width:760px){#app{flex-direction:column}.side{width:100%;padding:16px}.main{padding:16px}}
+</style>
+</head>
+<body>
+
+<div class="ov" id="auth" style="background:var(--side)">
+  <div class="box">
+    <h3>Stone Town Beach Tours</h3>
+    <p>Ingia kwa barua pepe na password yako binafsi.</p>
+    <label for="aEmail">Barua pepe</label><input id="aEmail" type="email" autocomplete="username">
+    <div style="margin-top:10px"><label for="aPass">Password</label><input id="aPass" type="password" autocomplete="current-password"></div>
+    <div class="err" id="aErr"></div>
+    <div class="row"><button id="aBtn">Ingia</button></div>
+    <p style="margin:14px 0 0;text-align:center"><a href="#" id="forgot" style="color:var(--acc);font-size:13px">Nimesahau password</a></p>
+  </div>
+</div>
+
+<div class="ov hidden" id="reasonModal"><div class="box">
+  <h3>Omba Mabadiliko kwa Bosi</h3>
+  <label for="rType">Unaomba nini?</label>
+  <select id="rType"><option value="badili">Rudisha booking kuwa Pending (kurekebisha)</option><option value="futa">Futa booking</option></select>
+  <div style="margin-top:10px"><label for="rText">Sababu</label><textarea id="rText" rows="3"></textarea></div>
+  <div class="err" id="rErr"></div>
+  <div class="row"><button class="sec" id="rCancel">Ghairi</button><button id="rOk">Tuma kwa Bosi</button></div>
+</div></div>
+
+<div id="app" class="hidden">
+  <aside class="side">
+    <h2>Stone Town Beach Tours</h2>
+    <div class="sub">ZANZIBAR &amp; TANZANIA SAFARI</div>
+    <p class="tag" id="who"></p>
+    <p>Email Kampuni: Stonetownbeachtoursafari@gmail.com</p>
+    <button class="out" id="logout">Toka</button>
+  </aside>
+  <main class="main">
+    <div class="head"><h1>Management Control System</h1><div class="badge-cloud">CLOUD: ACTIVE</div></div>
+    <div class="note hidden" id="note"></div>
+    <div class="stats">
+      <div class="stat"><b id="sAll">0</b><span>Booking zote</span></div>
+      <div class="stat"><b id="sPen">0</b><span>Pending</span></div>
+      <div class="stat"><b id="sCon">0</b><span>Confirmed</span></div>
+      <div class="stat" id="revStat"><b id="sRev">$0</b><span>Mapato (Confirmed)</span></div>
+    </div>
+
+    <section class="panel">
+      <h3>Sajili Uhifadhi Mpya (Online &amp; Walk-In)</h3>
+      <label for="wa">Ujumbe wa WhatsApp wa mteja (bandika hapa)</label><textarea id="wa" rows="2"></textarea>
+      <button class="sec mini" id="waBtn" style="margin:6px 0 14px">Chukua Jina na Nchi</button>
+      <div class="grid">
+        <div><label for="guestName">Majina ya Wageni</label><input id="guestName"></div>
+        <div><label for="guestPhone">Namba ya WhatsApp (+255...)</label><input id="guestPhone" inputmode="tel"><small id="ctry" class="mut"></small></div>
+        <div><label for="serviceType">Huduma</label><select id="serviceType"><option value="Tours Only">Tours Pekee (No Accommodation)</option><option value="Car Rental Only">Kukodisha Gari Tu</option><option value="Full Package">Full Package (Tours + Accommodation)</option></select></div>
+        <div><label for="tourPackage">Kivutio / Tour</label><select id="tourPackage"><option value="None">-- Chagua Kivutio/Tour --</option><option>Stone Town Tour</option><option>Prison Island</option><option>Safari Blue</option><option>Mnemba Atoll Snorkeling</option><option>Serengeti National Park</option><option>Ngorongoro Crater Safari</option><option>Tarangire National Park</option></select></div>
+      </div>
+      <div class="grid">
+        <div><label for="guestCount">Idadi ya Watu</label><input type="number" id="guestCount" min="1"></div>
+        <div><label for="tourDate">Tarehe ya Safari</label><input type="date" id="tourDate"></div>
+        <div><label for="departureTime">Muda wa Kuondoka</label><input type="time" id="departureTime"></div>
+        <div><label for="endTime">Muda wa Kurudi</label><input type="time" id="endTime"></div>
+        <div><label for="totalPrice">Kiasi cha Pesa ($)</label><input type="number" id="totalPrice" min="0"></div>
+      </div>
+      <button id="saveBtn">Hifadhi na Toa ID</button>
+    </section>
+
+    <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:12px">
+      <div><label for="dFilter">Tarehe ya kuona</label><input type="date" id="dFilter"></div>
+      <button class="sec mini" id="dToday">Leo</button><button class="sec mini" id="dAll">Tarehe zote</button>
+    </div>
+    <h3>Usimamizi wa Safari Zote</h3>
+    <div class="wrap"><table>
+      <thead><tr><th>Booking ID</th><th>Wageni</th><th>Huduma / Kivutio</th><th>Watu</th><th>Tarehe</th><th>Masaa</th><th id="thPrice">Kiasi</th><th>Nchi</th><th>Aliyesajili</th><th>Hali</th><th>Vitendo</th></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table><div class="empty" id="empty">Hakuna booking kwa tarehe hii.</div></div>
+
+    <div id="bossArea" class="hidden">
+      <section class="panel"><h3>Maombi ya Wafanyakazi (<span id="reqCount">0</span>)</h3><div class="log" id="reqBox"></div></section>
+      <section class="panel">
+        <h3>Wafanyakazi (<span id="staffCount">0</span>/6)</h3>
+        <div class="grid">
+          <div><label for="stName">Jina</label><input id="stName"></div>
+          <div><label for="stEmail">Barua pepe yake</label><input id="stEmail" type="email"></div>
+          <div><label for="stPass">Password ya kuanzia (herufi 6+)</label><input id="stPass" type="password"></div>
+        </div>
+        <button id="stAdd">Ongeza Mfanyakazi</button>
+        <div class="wrap" style="margin:16px 0 0"><table style="min-width:0"><tbody id="staffBody"></tbody></table></div>
+      </section>
+      <section class="panel"><h3>Ripoti ya Ulinzi na Shughuli</h3><div class="log" id="logBox"></div></section>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, createUserWithEmailAndPassword, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, runTransaction, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAz9Jd2woiCEQsYuk7TqLm6pvc6UV3Op-0",
+  authDomain: "stone-54643.firebaseapp.com",
+  projectId: "stone-54643",
+  storageBucket: "stone-54643.firebasestorage.app",
+  messagingSenderId: "142936734131",
+  appId: "1:142936734131:web:4cddc235b3efd7b192f3c6"
+};
+const BOSS = "muhammedissa000111@gmail.com";
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+setPersistence(auth, browserSessionPersistence);
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const key = e => e.toLowerCase().replace(/[^a-z0-9]/g, '_');
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+let tt; const toast = m => { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(tt); tt = setTimeout(() => t.style.display = 'none', 3500); };
+
+let me = null, B = [], P = {}, R = [], U = [], LK = {}, LG = [], unsubs = [];
+const addLog = t => addDoc(collection(db, 'log'), { t, by: me?.name || '', at: serverTimestamp() }).catch(() => {});
+
+/* ---------- Login ---------- */
+const LOGIN_ERR = ['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found', 'auth/invalid-login-credentials'];
+$('aBtn').onclick = async () => {
+  const email = $('aEmail').value.trim().toLowerCase(), pass = $('aPass').value, err = $('aErr');
+  err.textContent = '';
+  if (!email || !pass) { err.textContent = 'Weka barua pepe na password.'; return; }
+  const lref = doc(db, 'locks', key(email)), isBoss = email === BOSS;
+  try { const ls = await getDoc(lref); if (!isBoss && ls.exists() && ls.data().locked) { err.textContent = 'Akaunti imefungiwa. Muombe Bosi akufungulie.'; return; } } catch (e) {}
+  $('aBtn').disabled = true;
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    try { const ls = await getDoc(lref); if (ls.exists() && !ls.data().locked) await updateDoc(lref, { fails: 0 }); } catch (e) {}
+  } catch (e) {
+    if (LOGIN_ERR.includes(e.code) && !isBoss) {
+      try {
+        const ls = await getDoc(lref), f = (ls.exists() ? ls.data().fails : 0) + 1;
+        if (ls.exists()) await updateDoc(lref, { fails: f, locked: f >= 3 }); else await setDoc(lref, { fails: 1, locked: false });
+        err.textContent = f >= 3 ? 'Umekosea mara 3. Akaunti imefungiwa hadi Bosi akufungulie.' : 'Password si sahihi. Majaribio yaliyobaki: ' + (3 - f);
+      } catch (_) { err.textContent = 'Barua pepe au password si sahihi.'; }
+    } else if (LOGIN_ERR.includes(e.code)) err.textContent = 'Barua pepe au password si sahihi.';
+    else if (e.code === 'auth/too-many-requests') err.textContent = 'Majaribio mengi. Subiri kidogo au tumia "Nimesahau password".';
+    else err.textContent = 'Hitilafu: ' + (e.code || e.message);
+  }
+  $('aBtn').disabled = false;
+};
+['aEmail', 'aPass'].forEach(i => $(i).addEventListener('keydown', e => { if (e.key === 'Enter') $('aBtn').click(); }));
+$('forgot').onclick = async e => {
+  e.preventDefault(); const em = $('aEmail').value.trim();
+  if (!em) { $('aErr').textContent = 'Andika barua pepe yako kwanza, kisha bonyeza hapa tena.'; return; }
+  try { await sendPasswordResetEmail(auth, em); } catch (_) {}
+  $('aErr').style.color = 'var(--ok)'; $('aErr').textContent = 'Kama akaunti ipo, barua ya kuweka password mpya imetumwa kwa ' + em + '. Angalia pia Spam.';
+};
+$('logout').onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, async u => {
+  unsubs.forEach(f => f()); unsubs = []; B = []; P = {}; R = []; U = []; LK = {}; LG = [];
+  if (!u) { me = null; $('app').classList.add('hidden'); $('auth').classList.remove('hidden'); $('aPass').value = ''; return; }
+  let snap = null; try { snap = await getDoc(doc(db, 'users', u.uid)); } catch (e) {}
+  if (snap && snap.exists()) me = { uid: u.uid, ...snap.data() };
+  else if ((u.email || '').toLowerCase() === BOSS) {
+    const d = { name: 'Bosi', email: BOSS, role: 'boss', msg: '' };
+    try { await setDoc(doc(db, 'users', u.uid), d); } catch (e) {} me = { uid: u.uid, ...d };
+  } else { await signOut(auth); $('aErr').style.color = 'var(--no)'; $('aErr').textContent = 'Akaunti hii haijasajiliwa kwenye mfumo. Wasiliana na Bosi.'; return; }
+  start();
+});
+
+function start() {
+  $('aErr').style.color = 'var(--no)'; $('aErr').textContent = '';
+  $('auth').classList.add('hidden'); $('app').classList.remove('hidden');
+  const boss = me.role === 'boss';
+  $('who').textContent = (boss ? 'Bosi: ' : 'Mfanyakazi: ') + me.name;
+  $('bossArea').classList.toggle('hidden', !boss);
+  $('dFilter').value = boss ? '' : today(); $('tourDate').value = today();
+  const L = (q, fn) => unsubs.push(onSnapshot(q, fn, e => console.warn(e.code)));
+  L(collection(db, 'bookings'), s => { B = s.docs.map(d => ({ ...d.data(), id: d.id })); render(); });
+  L(collection(db, 'requests'), s => { R = s.docs.map(d => ({ ...d.data(), rid: d.id })); render(); });
+  L(doc(db, 'users', me.uid), s => { if (!s.exists()) { signOut(auth); return; } me = { uid: me.uid, ...s.data() }; note(); });
+  if (boss) {
+    L(collection(db, 'prices'), s => { P = {}; s.docs.forEach(d => P[d.id] = d.data().price); render(); });
+    L(collection(db, 'users'), s => { U = s.docs.map(d => ({ ...d.data(), uid: d.id })); render(); });
+    L(collection(db, 'locks'), s => { LK = {}; s.docs.forEach(d => LK[d.id] = d.data()); render(); });
+    L(query(collection(db, 'log'), orderBy('at', 'desc'), limit(60)), s => { LG = s.docs.map(d => d.data()); render(); });
+  }
+  note(); addLog(me.name + ' ameingia');
+}
+function note() {
+  const n = $('note'), show = me && me.msg && me.role !== 'boss';
+  n.textContent = show ? 'Ujumbe kutoka kwa Bosi: ' + me.msg : ''; n.classList.toggle('hidden', !show);
+}
+
+/* ---------- Render ---------- */
+const visible = () => { const f = $('dFilter').value; return B.filter(b => !f || b.date === f).sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.dep || '').localeCompare(b.dep || '')); };
+function acts(b) {
+  const id = esc(b.id), boss = me.role === 'boss';
+  const reqBtn = `<button class="sec mini" data-a="req" data-id="${id}">Omba Mabadiliko</button>`;
+  if (boss) return `<button class="mini c" data-a="Confirm" data-id="${id}" style="background:var(--ok)">Confirm</button><button class="mini" data-a="Cancel" data-id="${id}" style="background:var(--no)">Cancel</button><button class="mini sec" data-a="del" data-id="${id}">Futa</button>`;
+  if (R.some(r => r.bid === b.id && r.status === 'wazi')) return '<small>Ombi limetumwa kwa Bosi</small>';
+  if (b.status !== 'Pending') return reqBtn;
+  return `<button class="mini" data-a="Confirm" data-id="${id}" style="background:var(--ok)">Confirm</button><button class="mini" data-a="Cancel" data-id="${id}" style="background:var(--no)">Cancel</button>${reqBtn}`;
+}
+function render() {
+  if (!me) return; const boss = me.role === 'boss', rows = visible();
+  $('thPrice').classList.toggle('hidden', !boss); $('revStat').classList.toggle('hidden', !boss);
+  $('tableBody').innerHTML = rows.map(b => `<tr><td><strong>${esc(b.id)}</strong></td><td>${esc(b.name)}</td><td>${esc(b.service)}${b.tour && b.tour !== 'None' ? ' (' + esc(b.tour) + ')' : ''}</td><td>${esc(b.count)}</td><td>${esc(b.date || '-')}</td><td>${esc(b.dep)} - ${esc(b.arr)}</td>${boss ? `<td>$${Number(P[b.id] || 0).toLocaleString()}</td>` : ''}<td>${esc(b.country || '-')}</td><td>${esc(b.by || '-')}</td><td><span class="b ${esc(b.status)}">${esc(b.status)}</span></td><td class="act">${acts(b)}</td></tr>`).join('');
+  $('empty').style.display = rows.length ? 'none' : 'block';
+  const conf = B.filter(b => b.status === 'Confirm');
+  $('sAll').textContent = B.length; $('sPen').textContent = B.filter(b => b.status === 'Pending').length; $('sCon').textContent = conf.length;
+  $('sRev').textContent = '$' + conf.reduce((a, b) => a + Number(P[b.id] || 0), 0).toLocaleString();
+  if (!boss) return;
+  const staff = U.filter(u => u.role !== 'boss'); $('staffCount').textContent = staff.length;
+  $('staffBody').innerHTML = staff.map(u => { const e = esc(u.uid), lk = LK[key(u.email || '')]?.locked; return `<tr><td>${esc(u.name)}${lk ? ' <span class="b Cancel">Amefungiwa</span>' : ''}<br><small class="mut">${esc(u.email)} · Ujumbe: ${esc(u.msg || '-')}</small></td><td style="text-align:right">${lk ? `<button class="mini" data-un="${e}">Fungulia</button>` : ''}<button class="mini sec" data-pw="${e}">Barua ya Password</button><button class="mini sec" data-ms="${e}">Ujumbe</button><button class="mini" style="background:var(--no)" data-rm="${e}">Ondoa</button></td></tr>`; }).join('') || '<tr><td class="empty">Hakuna mfanyakazi bado.</td></tr>';
+  const open = R.filter(r => r.status === 'wazi'); $('reqCount').textContent = open.length;
+  $('reqBox').innerHTML = open.map(r => `<div><b>${esc(r.bid)}</b> · ${esc(r.by)} · <b>${r.type === 'futa' ? 'Anaomba kufuta' : 'Anaomba kurudisha Pending'}</b><br>${esc(r.reason)}<br><button class="mini" data-ap="${esc(r.rid)}">Kubali</button><button class="mini sec" data-rj="${esc(r.rid)}">Kataa</button></div>`).join('') || '<div class="empty">Hakuna maombi.</div>';
+  $('logBox').innerHTML = LG.map(l => `<div>${esc(l.t)}<br><small>${esc(l.at?.toDate ? l.at.toDate().toLocaleString('sw-TZ') : '')}</small></div>`).join('') || '<div class="empty">Hakuna shughuli.</div>';
+}
+$('dFilter').onchange = render;
+$('dToday').onclick = () => { $('dFilter').value = today(); render(); };
+$('dAll').onclick = () => { $('dFilter').value = ''; render(); };
+
+/* ---------- Country + WhatsApp ---------- */
+const CC = {'255':'Tanzania','254':'Kenya','256':'Uganda','250':'Rwanda','257':'Burundi','260':'Zambia','263':'Zimbabwe','27':'South Africa','20':'Egypt','44':'United Kingdom','1':'USA/Canada','49':'Germany','39':'Italy','33':'France','34':'Spain','31':'Netherlands','41':'Switzerland','46':'Sweden','47':'Norway','45':'Denmark','358':'Finland','48':'Poland','7':'Russia','90':'Turkey','971':'UAE','966':'Saudi Arabia','91':'India','86':'China','81':'Japan','82':'South Korea','61':'Australia','55':'Brazil'};
+const countryOf = p => { const d = String(p).replace(/[^\d]/g, '').replace(/^00/, ''); for (let n = 3; n >= 1; n--) if (CC[d.slice(0, n)]) return CC[d.slice(0, n)]; return ''; };
+$('guestPhone').oninput = () => { const c = countryOf($('guestPhone').value); $('ctry').textContent = c ? 'Nchi: ' + c : ''; };
+$('waBtn').onclick = () => {
+  const t = $('wa').value.trim(); if (!t) return;
+  const ph = t.match(/\+?\d[\d\s-]{7,}\d/); if (ph) $('guestPhone').value = ph[0].trim();
+  const nm = t.match(/(?:jina langu ni|naitwa|mimi ni|my name is|i am|i'm|name:?)\s+([A-Za-z' -]{2,40})/i);
+  const name = (nm ? nm[1] : (!/\d/.test(t) && t.length <= 40 ? t : '')).trim(); if (name) $('guestName').value = name;
+  $('guestPhone').oninput(); toast(name || ph ? 'Taarifa zimejazwa. Kagua kisha uhifadhi.' : 'Sijapata jina wala namba kwenye ujumbe huu.');
+};
+
+/* ---------- Bookings ---------- */
+$('saveBtn').onclick = async () => {
+  const name = $('guestName').value.trim(), count = parseInt($('guestCount').value), dep = $('departureTime').value, arr = $('endTime').value, price = parseFloat($('totalPrice').value);
+  if (!name || !count || !dep || !arr || isNaN(price)) { toast('Tafadhali jaza vipengele vyote muhimu!'); return; }
+  $('saveBtn').disabled = true;
+  try {
+    const n = await runTransaction(db, async t => { const r = doc(db, 'meta', 'counter'), s = await t.get(r), v = s.exists() ? s.data().n : 1001; t.set(r, { n: v + 1 }); return v; });
+    const id = 'STB-ZANZIBAR-' + n, phone = $('guestPhone').value.trim();
+    await setDoc(doc(db, 'bookings', id), { name, service: $('serviceType').value, tour: $('tourPackage').value, count, date: $('tourDate').value || today(), dep, arr, status: 'Pending', by: me.name, phone, country: countryOf(phone), createdAt: serverTimestamp() });
+    await setDoc(doc(db, 'prices', id), { price });
+    addLog(me.name + ' amesajili ' + id + ' (' + name + ')');
+    ['guestName', 'guestPhone', 'wa', 'guestCount', 'departureTime', 'endTime', 'totalPrice'].forEach(i => $(i).value = ''); $('ctry').textContent = ''; $('tourPackage').value = 'None'; $('tourDate').value = today();
+    toast('Imesajiliwa! ID: ' + id + ' · Risiti: Stone Town Beach Tours Safari');
+  } catch (e) { toast('Hitilafu ya kuhifadhi: ' + (e.code || e.message)); }
+  $('saveBtn').disabled = false;
+};
+
+let reqFor = null;
+$('tableBody').onclick = async e => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  const id = btn.dataset.id, a = btn.dataset.a, b = B.find(x => x.id === id); if (!b) return;
+  try {
+    if (a === 'req') { reqFor = id; $('rText').value = ''; $('rErr').textContent = ''; $('reasonModal').classList.remove('hidden'); }
+    else if (a === 'del') {
+      if (me.role !== 'boss' || !confirm('Futa ' + id + ' kabisa?')) return;
+      await deleteDoc(doc(db, 'bookings', id)); await deleteDoc(doc(db, 'prices', id)).catch(() => {}); addLog('Bosi amefuta ' + id); toast(id + ' imefutwa.');
+    } else {
+      if (me.role !== 'boss' && b.status !== 'Pending') { toast('Booking imefungwa. Tuma ombi kwa Bosi.'); return; }
+      await updateDoc(doc(db, 'bookings', id), { status: a }); addLog(me.name + ' amebadilisha ' + id + ' kuwa ' + a); toast('Hali ya ' + id + ' sasa ni: ' + a);
+    }
+  } catch (err) { toast('Hairuhusiwi au hitilafu: ' + (err.code || err.message)); }
+};
+$('rCancel').onclick = () => $('reasonModal').classList.add('hidden');
+$('rOk').onclick = async () => {
+  const r = $('rText').value.trim(); if (r.length < 5) { $('rErr').textContent = 'Andika sababu ya kutosha.'; return; }
+  try {
+    await addDoc(collection(db, 'requests'), { bid: reqFor, by: me.name, type: $('rType').value, reason: r, status: 'wazi', at: serverTimestamp() });
+    addLog(me.name + ' ameomba mabadiliko ya ' + reqFor + ': ' + r); $('reasonModal').classList.add('hidden'); toast('Ombi limetumwa kwa Bosi.');
+  } catch (e) { $('rErr').textContent = 'Hitilafu: ' + (e.code || e.message); }
+};
+
+/* ---------- Boss: requests ---------- */
+$('reqBox').onclick = async e => {
+  const d = e.target.dataset, rid = d.ap || d.rj; if (!rid || me.role !== 'boss') return;
+  const r = R.find(x => x.rid === rid); if (!r) return;
+  try {
+    if (d.ap) {
+      if (r.type === 'futa') { await deleteDoc(doc(db, 'bookings', r.bid)); await deleteDoc(doc(db, 'prices', r.bid)).catch(() => {}); }
+      else await updateDoc(doc(db, 'bookings', r.bid), { status: 'Pending' });
+      await updateDoc(doc(db, 'requests', rid), { status: 'imekubaliwa' }); addLog('Bosi amekubali ombi la ' + r.by + ' kwa ' + r.bid);
+    } else { await updateDoc(doc(db, 'requests', rid), { status: 'limekataliwa' }); addLog('Bosi amekataa ombi la ' + r.by + ' kwa ' + r.bid); }
+  } catch (err) { toast('Hitilafu: ' + (err.code || err.message)); }
+};
+
+/* ---------- Boss: staff ---------- */
+$('stAdd').onclick = async () => {
+  if (me.role !== 'boss') return;
+  const name = $('stName').value.trim(), email = $('stEmail').value.trim().toLowerCase(), pass = $('stPass').value;
+  if (!name || !email || pass.length < 6) { toast('Weka jina, barua pepe na password ya herufi 6+.'); return; }
+  if (U.filter(u => u.role !== 'boss').length >= 6) { toast('Umefikia wafanyakazi 6.'); return; }
+  $('stAdd').disabled = true;
+  try {
+    const app2 = initializeApp(firebaseConfig, 'sec' + Date.now()), auth2 = getAuth(app2);
+    const c = await createUserWithEmailAndPassword(auth2, email, pass); await signOut(auth2);
+    await setDoc(doc(db, 'users', c.user.uid), { name, email, role: 'staff', msg: '' });
+    addLog('Bosi amemsajili ' + name + ' (' + email + ')'); ['stName', 'stEmail', 'stPass'].forEach(i => $(i).value = ''); toast(name + ' ameongezwa. Mpe password kwa siri.');
+  } catch (e) { toast(e.code === 'auth/email-already-in-use' ? 'Barua pepe hiyo tayari inatumika.' : 'Hitilafu: ' + (e.code || e.message)); }
+  $('stAdd').disabled = false;
+};
+$('staffBody').onclick = async e => {
+  const d = e.target.dataset, uid = d.un || d.pw || d.ms || d.rm; if (!uid || me.role !== 'boss') return;
+  const u = U.find(x => x.uid === uid); if (!u) return;
+  try {
+    if (d.un) { await setDoc(doc(db, 'locks', key(u.email)), { fails: 0, locked: false }); addLog('Bosi amemfungulia ' + u.name); toast(u.name + ' amefunguliwa.'); }
+    else if (d.pw) { await sendPasswordResetEmail(auth, u.email); toast('Barua ya kuweka password mpya imetumwa kwa ' + u.email); }
+    else if (d.ms) { const m = prompt('Ujumbe kwa ' + u.name + ' (utaonekana akiingia):', u.msg || ''); if (m === null) return; await updateDoc(doc(db, 'users', uid), { msg: m.trim() }); addLog('Bosi ameandika ujumbe kwa ' + u.name); }
+    else if (d.rm) { if (!confirm('Ondoa ' + u.name + '? Hataweza tena kuingia kwenye mfumo.')) return; await deleteDoc(doc(db, 'users', uid)); addLog('Bosi amemwondoa ' + u.name); }
+  } catch (err) { toast('Hitilafu: ' + (err.code || err.message)); }
+};
+</script>
+</body>
+</html>
