@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Stone Town Beach Tours - Control Panel</title>
+<style>
+:root{--ink:#13242d;--mut:#5f6f78;--line:#d6dde1;--acc:#0e7490;--acc2:#0b5c73;--ok:#15803d;--no:#b91c1c;--pe:#b45309;--dark:#0f3b4a}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Arial,sans-serif;color:var(--ink);background:#eef4f6;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;background:url('logo.jpg') center/min(80vmin,560px) no-repeat;opacity:.1;z-index:-1;pointer-events:none}
+header{background:var(--dark);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header h1{font-size:18px;margin:0}
+header small{opacity:.8}
+main{max-width:1150px;margin:0 auto;padding:16px}
+.card{background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+.card h2{font-size:17px;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.stat{margin:0}
+.stat b{display:block;font-size:22px}
+.mut,label,.stat span{font-size:12.5px;color:var(--mut)}
+label{display:block;margin-bottom:3px}
+input,select,textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:6px;font-size:15px;background:#fff;color:var(--ink);font-family:inherit}
+input[readonly]{background:#f2f5f6}
+button{background:var(--acc);color:#fff;border:0;padding:10px 16px;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;margin:2px}
+button:hover{background:var(--acc2)}
+button:disabled{opacity:.6}
+button.sec{background:#fff;color:var(--ink);border:1px solid var(--line)}
+button.no{background:var(--no)}
+button.small{padding:5px 9px;font-size:12px}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:900px;font-size:14px}
+th,td{padding:9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--mut);font-weight:600}
+.tag{padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700;white-space:nowrap}
+.Pending{background:#fef3c7;color:var(--pe)}.Paid{background:#dcfce7;color:var(--ok)}.Cancel{background:#fee2e2;color:var(--no)}
+.hidden{display:none!important}
+.ov{position:fixed;inset:0;background:rgba(15,59,74,.9);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.box{background:#fff;border-radius:12px;padding:22px;width:100%;max-width:380px}
+.err{color:var(--no);font-size:13px;min-height:18px;margin:8px 0}
+.note{background:#fef3c7;color:var(--pe);padding:10px;border-radius:8px;margin-bottom:14px;font-size:14px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:var(--dark);color:#fff;padding:11px 16px;border-radius:8px;font-size:14px;max-width:92%;display:none;z-index:99}
+.log{max-height:240px;overflow:auto;font-size:13px}
+.item{border-bottom:1px solid var(--line);padding:8px 0;font-size:14px}
+.check{display:flex;gap:8px;align-items:center;font-size:15px;color:var(--ink);margin-top:6px}
+.check input{width:auto}
+</style>
+</head>
+<body>
+
+<div class="ov" id="auth"><div class="box">
+  <h2 style="margin:0 0 4px;font-size:20px">Stone Town Beach Tours</h2>
+  <p class="mut" style="margin:0 0 14px">Sign in with your username and password.</p>
+  <label for="lUser">Username</label><input id="lUser" autocomplete="username">
+  <div style="margin-top:10px"><label for="lPass">Password</label><input id="lPass" type="password" autocomplete="current-password"></div>
+  <div class="err" id="lErr"></div>
+  <button id="lBtn" style="width:100%">Sign in</button>
+  <p class="mut" style="font-size:12.5px">Forgot your password? Ask the boss to remove your account and add you again with a new username.</p>
+</div></div>
+
+<div id="app" class="hidden">
+<header>
+  <div><h1>Stone Town Beach Tours - Control Panel</h1><small id="who"></small></div>
+  <button class="sec small" id="logout">Sign out</button>
+</header>
+<main>
+  <div class="note hidden" id="note"></div>
+
+  <div class="stats">
+    <div class="card stat"><b id="sAll">0</b><span>All bookings</span></div>
+    <div class="card stat"><b id="sPend">0</b><span>Pending payment</span></div>
+    <div class="card stat"><b id="sPaid">0</b><span>Paid</span></div>
+    <div class="card stat bossOnly"><b id="sRev">$0</b><span>Revenue (Paid)</span></div>
+  </div>
+
+  <section class="card">
+    <h2>New booking</h2>
+    <label for="wa">WhatsApp message from guest (paste here, optional)</label>
+    <textarea id="wa" rows="2"></textarea>
+    <button class="sec small" id="waBtn" style="margin:6px 0 12px">Fill from WhatsApp</button>
+    <div class="grid">
+      <div><label for="fName">Guest name *</label><input id="fName"></div>
+      <div><label for="fPhone">WhatsApp number</label><input id="fPhone" inputmode="tel" placeholder="+255..."></div>
+      <div><label for="fCountry">Country (automatic)</label><input id="fCountry" readonly></div>
+      <div><label for="fDate">Tour date *</label><input type="date" id="fDate"></div>
+      <div><label for="fTime">Departure time *</label><input type="time" id="fTime"></div>
+      <div><label for="fTour">Tour *</label><select id="fTour"></select></div>
+      <div><label for="fCount">Number of people *</label><input type="number" id="fCount" min="1"></div>
+      <div><label>Accommodation</label><label class="check"><input type="checkbox" id="fAcc"> Add accommodation</label></div>
+      <div><label for="fPrice">Total price (automatic)</label><input id="fPrice" readonly></div>
+    </div>
+    <button id="saveBtn" style="margin-top:12px">Confirm</button>
+    <p class="mut" style="font-size:12.5px">Confirm saves the booking, copies the total to your clipboard and opens the payment page. Paste the total there.</p>
+  </section>
+
+  <section class="card">
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px">
+      <div><label for="dFilter">Show date</label><input type="date" id="dFilter"></div>
+      <button class="sec small" id="dToday">Today</button>
+      <button class="sec small" id="dAll">All dates</button>
+    </div>
+    <h2>Bookings</h2>
+    <div class="wrap"><table>
+      <thead><tr><th>ID</th><th>Guest</th><th>Country</th><th>Date</th><th>Time</th><th>Tour</th><th>People</th><th>Accom.</th><th class="bossOnly">Total</th><th>Booked by</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="tBody"></tbody>
+    </table></div>
+    <p class="mut hidden" id="empty">No bookings for this date.</p>
+  </section>
+
+  <section class="card bossOnly">
+    <h2>Cancel requests from staff</h2>
+    <div id="reqBox"></div>
+  </section>
+
+  <section class="card bossOnly">
+    <h2>Staff (<span id="stCount">0</span>/6)</h2>
+    <div class="grid">
+      <div><label for="sName">Full name</label><input id="sName"></div>
+      <div><label for="sLogin">Username (for sign in)</label><input id="sLogin"></div>
+      <div><label for="sPass">Starting password (6+ characters)</label><input id="sPass" type="password"></div>
+    </div>
+    <button id="stAdd" style="margin-top:10px">Add staff</button>
+    <div class="wrap" style="margin-top:12px"><table style="min-width:0"><tbody id="stBody"></tbody></table></div>
+  </section>
+
+  <section class="card bossOnly">
+    <h2>Activity log</h2>
+    <div class="log" id="logBox"></div>
+  </section>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, runTransaction, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const cfg = {
+  apiKey: "AIzaSyAz9Jd2woiCEQsYuk7TqLm6pvc6UV3Op-0",
+  authDomain: "stone-54643.firebaseapp.com",
+  projectId: "stone-54643",
+  storageBucket: "stone-54643.firebasestorage.app",
+  messagingSenderId: "142936734131",
+  appId: "1:142936734131:web:4cddc235b3efd7b192f3c6"
+};
+
+/* ===== EDIT PRICES HERE (USD). Each tour: [minimum people, total price]. Values are placeholders. ===== */
+const ACC = 50; // accommodation price per person
+const TOURS = {
+  "Stone Town Tour":           [[1,30],[2,50],[5,90],[10,150]],
+  "Prison Island":             [[1,35],[2,60],[5,110],[10,190]],
+  "Safari Blue":               [[1,80],[2,140],[5,300],[10,520]],
+  "Mnemba Atoll Snorkeling":   [[1,90],[2,160],[5,350],[10,600]],
+  "Serengeti National Park":   [[1,600],[2,900],[5,1800],[10,3200]],
+  "Ngorongoro Crater Safari":  [[1,550],[2,850],[5,1700],[10,3000]],
+  "Tarangire National Park":   [[1,450],[2,700],[5,1400],[10,2500]]
+};
+const PAY = "https://payments.pesapal.com/zarahazanzibartoursandsafaris";
+const BOSS = "muhammedissa000111@gmail.com"; // boss signs in with username: bosi
+const LOGIN_ERR = ["auth/invalid-credential","auth/invalid-login-credentials","auth/wrong-password","auth/user-not-found"];
+const CC = {"255":"Tanzania","254":"Kenya","256":"Uganda","250":"Rwanda","257":"Burundi","260":"Zambia","263":"Zimbabwe","27":"South Africa","20":"Egypt","44":"United Kingdom","1":"USA/Canada","49":"Germany","39":"Italy","33":"France","34":"Spain","31":"Netherlands","41":"Switzerland","46":"Sweden","47":"Norway","45":"Denmark","358":"Finland","48":"Poland","7":"Russia","90":"Turkey","971":"UAE","966":"Saudi Arabia","91":"India","86":"China","81":"Japan","82":"South Korea","61":"Australia","55":"Brazil"};
+
+const app = initializeApp(cfg), auth = getAuth(app), db = getFirestore(app);
+let me = null, B = [], R = [], U = [], LK = {}, LG = [], unsubs = [];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const slug = s => String(s).trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+const emailOf = u => { const x = u.trim().toLowerCase(); if (x === "bosi" || x === BOSS) return BOSS; if (x.includes("@")) return x; return slug(x) + "@staff.stonetown.app"; };
+const boss = () => !!me && me.role === "boss";
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const countryOf = p => { const d = String(p).replace(/[^\d]/g, "").replace(/^00/, ""); for (let n = 3; n >= 1; n--) if (CC[d.slice(0, n)]) return CC[d.slice(0, n)]; return ""; };
+let tt; const toast = m => { const t = $("toast"); t.textContent = m; t.style.display = "block"; clearTimeout(tt); tt = setTimeout(() => t.style.display = "none", 4000); };
+const addLog = t => addDoc(collection(db, "log"), { t, by: me?.name || "", at: serverTimestamp() }).catch(() => {});
+
+/* ---------- Pricing ---------- */
+const priceOf = (tour, n) => { let p = 0; (TOURS[tour] || []).forEach(([m, v]) => { if (n >= m) p = v; }); return p; };
+const totalOf = () => { const n = +$("fCount").value || 0; return priceOf($("fTour").value, n) + ($("fAcc").checked ? ACC * n : 0); };
+function updPrice() { const t = totalOf(); $("fPrice").value = t ? "$" + t : ""; }
+$("fTour").innerHTML = '<option value="">-- Select tour --</option>' + Object.keys(TOURS).map(t => `<option>${esc(t)}</option>`).join("");
+["fTour", "fCount", "fAcc"].forEach(i => { $(i).addEventListener("input", updPrice); $(i).addEventListener("change", updPrice); });
+$("fPhone").addEventListener("input", () => { $("fCountry").value = countryOf($("fPhone").value); });
+
+/* ---------- Login ---------- */
+$("lBtn").onclick = async () => {
+  const raw = $("lUser").value.trim(), pass = $("lPass").value, err = $("lErr");
+  err.textContent = "";
+  if (!raw || !pass) { err.textContent = "Enter your username and password."; return; }
+  const email = emailOf(raw), isBoss = email === BOSS, key = isBoss ? "boss" : slug(raw), lref = doc(db, "locks", key);
+  try { const s = await getDoc(lref); if (!isBoss && s.exists() && s.data().locked) { err.textContent = "Your account is locked. Ask the boss to unlock it."; return; } } catch (e) {}
+  $("lBtn").disabled = true;
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    if (!isBoss) try { await setDoc(lref, { fails: 0, locked: false }); } catch (e) {}
+  } catch (e) {
+    if (LOGIN_ERR.includes(e.code) && !isBoss) {
+      try {
+        const s = await getDoc(lref), f = (s.exists() ? s.data().fails : 0) + 1;
+        await setDoc(lref, { fails: f, locked: f >= 3 });
+        err.textContent = f >= 3 ? "Wrong password 3 times. Account locked. Ask the boss to unlock it." : "Wrong password. Attempts left: " + (3 - f);
+      } catch (_) { err.textContent = "Wrong username or password."; }
+    } else {
+      err.textContent = LOGIN_ERR.includes(e.code) ? "Wrong username or password." : "Error: " + (e.code || e.message);
+    }
+  }
+  $("lBtn").disabled = false;
+};
+["lUser", "lPass"].forEach(i => $(i).addEventListener("keydown", e => { if (e.key === "Enter") $("lBtn").click(); }));
+$("logout").onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, async u => {
+  unsubs.forEach(f => f()); unsubs = []; B = []; R = []; U = []; LK = {}; LG = [];
+  if (!u) { me = null; $("app").classList.add("hidden"); $("auth").classList.remove("hidden"); $("lPass").value = ""; return; }
+  let s = null; try { s = await getDoc(doc(db, "users", u.uid)); } catch (e) {}
+  if (s && s.exists()) me = { uid: u.uid, ...s.data() };
+  else if ((u.email || "") === BOSS) {
+    const d = { name: "Boss", login: "bosi", email: BOSS, role: "boss", msg: "" };
+    try { await setDoc(doc(db, "users", u.uid), d); } catch (e) {}
+    me = { uid: u.uid, ...d };
+  } else { await signOut(auth); $("lErr").textContent = "This account is not registered. Contact the boss."; return; }
+  start();
+});
+
+function start() {
+  $("lErr").textContent = "";
+  $("auth").classList.add("hidden"); $("app").classList.remove("hidden");
+  const isB = boss();
+  $("who").textContent = (isB ? "Boss" : "Staff") + ": " + me.name;
+  document.querySelectorAll(".bossOnly").forEach(e => e.classList.toggle("hidden", !isB));
+  const L = (q, fn) => unsubs.push(onSnapshot(q, fn, e => console.warn(e.code)));
+  L(collection(db, "bookings"), s => { B = s.docs.map(d => ({ ...d.data(), id: d.id })); render(); });
+  L(collection(db, "requests"), s => { R = s.docs.map(d => ({ ...d.data(), rid: d.id })); render(); });
+  L(doc(db, "users", me.uid), s => { if (!s.exists()) { signOut(auth); return; } me = { uid: me.uid, ...s.data() }; note(); render(); });
+  if (isB) {
+    L(collection(db, "users"), s => { U = s.docs.map(d => ({ ...d.data(), uid: d.id })); render(); });
+    L(collection(db, "locks"), s => { LK = {}; s.docs.forEach(d => LK[d.id] = d.data()); render(); });
+    L(query(collection(db, "log"), orderBy("at", "desc"), limit(60)), s => { LG = s.docs.map(d => d.data()); render(); });
+  }
+  $("dFilter").value = isB ? "" : today();
+  $("fDate").value = today();
+  updPrice(); note(); render();
+  addLog(me.name + " signed in");
+}
+
+function note() {
+  const show = !!me && !!me.msg && !boss();
+  $("note").textContent = show ? "Message from boss: " + me.msg : "";
+  $("note").classList.toggle("hidden", !show);
+}
+
+/* ---------- Render ---------- */
+const visible = () => { const f = $("dFilter").value; return B.filter(b => !f || b.date === f).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)); };
+
+function acts(b) {
+  const id = esc(b.id);
+  if (boss()) return `<button class="small ok" data-a="paid" data-id="${id}">Paid</button><button class="small no" data-a="cancel" data-id="${id}">Cancel</button><button class="small no" data-a="del" data-id="${id}">Delete</button>`;
+  if (b.status === "Cancel") return "";
+  if (R.some(r => r.bid === b.id && r.status === "open")) return '<small class="mut">Request sent</small>';
+  return `<button class="small sec" data-a="req" data-id="${id}">Request cancel</button>`;
+}
+
+const row = b => `<tr><td><b>${esc(b.id)}</b></td><td>${esc(b.name)}</td><td>${esc(b.country || "-")}</td><td>${esc(b.date)}</td><td>${esc(b.time)}</td><td>${esc(b.tour)}</td><td>${esc(b.count)}</td><td>${b.acc ? "Yes" : "No"}</td>${boss() ? `<td>$${esc(b.price)}</td>` : ""}<td>${esc(b.by)}</td><td><span class="tag ${esc(b.status)}">${esc(b.status)}</span></td><td>${acts(b)}</td></tr>`;
+
+function render() {
+  if (!me) return;
+  const rows = visible();
+  $("tBody").innerHTML = rows.map(row).join("");
+  $("empty").classList.toggle("hidden", rows.length > 0);
+  $("sAll").textContent = B.length;
+  $("sPend").textContent = B.filter(b => b.status === "Pending").length;
+  $("sPaid").textContent = B.filter(b => b.status === "Paid").length;
+  $("sRev").textContent = "$" + B.filter(b => b.status === "Paid").reduce((a, b) => a + Number(b.price || 0), 0);
+  if (!boss()) return;
+  const open = R.filter(r => r.status === "open");
+  $("reqBox").innerHTML = open.map(r => `<div class="item"><b>${esc(r.bid)}</b> - requested by ${esc(r.by)}<br>${esc(r.reason)}<div style="margin-top:6px"><button class="small no" data-a="accept" data-rid="${esc(r.rid)}">Accept cancel</button><button class="small sec" data-a="reject" data-rid="${esc(r.rid)}">Reject</button></div></div>`).join("") || '<p class="mut">No open requests.</p>';
+  const staff = U.filter(u => u.role !== "boss");
+  $("stCount").textContent = staff.length;
+  $("stBody").innerHTML = staff.map(u => {
+    const lk = LK[u.login] && LK[u.login].locked;
+    return `<tr><td>${esc(u.name)} <span class="mut">(${esc(u.login)})</span>${lk ? ' <span class="tag Cancel">Locked</span>' : ""}<br><span class="mut">Message: ${esc(u.msg || "-")}</span></td><td>${lk ? `<button class="small ok" data-a="unlock" data-u="${esc(u.uid)}">Unlock</button>` : ""}<button class="small sec" data-a="msg" data-u="${esc(u.uid)}">Message</button><button class="small no" data-a="rm" data-u="${esc(u.uid)}">Remove</button></td></tr>`;
+  }).join("") || '<tr><td class="mut">No staff yet.</td></tr>';
+  $("logBox").innerHTML = LG.map(l => `<div class="item">${esc(l.t)}<br><small class="mut">${esc(l.at && l.at.toDate ? l.at.toDate().toLocaleString() : "")}</small></div>`).join("") || '<p class="mut">No activity yet.</p>';
+}
+
+$("dFilter").onchange = render;
+$("dToday").onclick = () => { $("dFilter").value = today(); render(); };
+$("dAll").onclick = () => { $("dFilter").value = ""; render(); };
+
+/* ---------- Bookings ---------- */
+function clearForm() {
+  ["fName", "fPhone", "fCount", "fTime", "wa"].forEach(i => $(i).value = "");
+  $("fAcc").checked = false; $("fTour").value = ""; $("fCountry").value = "";
+  $("fDate").value = today(); updPrice();
+}
+
+$("saveBtn").onclick = async () => {
+  const f = { name: $("fName").value.trim(), phone: $("fPhone").value.trim(), date: $("fDate").value, time: $("fTime").value, tour: $("fTour").value, count: +$("fCount").value, acc: $("fAcc").checked };
+  if (!f.name || !f.date || !f.time || !f.tour || !f.count) { toast("Please fill all required fields (*)."); return; }
+  const total = totalOf();
+  window.open(PAY, "_blank"); // opened straight from the tap so the browser does not block it
+  $("saveBtn").disabled = true;
+  try {
+    const n = await runTransaction(db, async t => {
+      const r = doc(db, "meta", "counter"), s = await t.get(r), v = s.exists() ? s.data().n : 1001;
+      t.set(r, { n: v + 1 }); return v;
+    });
+    const id = "STB-ZANZIBAR-" + n;
+    await setDoc(doc(db, "bookings", id), { ...f, country: countryOf(f.phone), price: total, status: "Pending", by: me.name, createdAt: serverTimestamp() });
+    addLog(me.name + " booked " + id + " (" + f.name + ")");
+    try { await navigator.clipboard.writeText("$" + total); } catch (_) {}
+    toast("Saved " + id + ". Total $" + total + " copied. Paste it on the payment page.");
+    clearForm();
+  } catch (e) { toast("Save error: " + (e.code || e.message)); }
+  $("saveBtn").disabled = false;
+};
+
+$("waBtn").onclick = () => {
+  const t = $("wa").value.trim(); if (!t) return;
+  const ph = t.match(/\+?\d[\d\s-]{7,}\d/); if (ph) { $("fPhone").value = ph[0].replace(/\s+/g, ""); $("fCountry").value = countryOf(ph[0]); }
+  const nm = t.match(/(?:name|jina(?: langu)?(?: ni)?|my name is|i am|i'm|naitwa|mimi ni)\s*[:\-]?\s*([A-Za-z' .-]{2,40})/i);
+  if (nm) $("fName").value = nm[1].trim();
+  else if (!/\d/.test(t) && t.length <= 40) $("fName").value = t;
+  const d = t.match(/(\d{4})-(\d{2})-(\d{2})/) || t.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
+  if (d) { const [y, m, dd] = d[1].length === 4 ? [d[1], d[2], d[3]] : [d[3], d[2], d[1]]; $("fDate").value = `${y}-${m.padStart(2, "0")}-${dd.padStart(2, "0")}`; }
+  const tm = t.match(/\b(\d{1,2})[:.](\d{2})\b/); if (tm) $("fTime").value = tm[1].padStart(2, "0") + ":" + tm[2];
+  const c = t.match(/(\d{1,2})\s*(?:people|persons|pax|guests|watu|mtu|wageni)/i) || t.match(/(?:people|pax|guests|watu|idadi)\s*[:\-]?\s*(\d{1,2})/i);
+  if (c) $("fCount").value = c[1];
+  const low = t.toLowerCase();
+  const tour = Object.keys(TOURS).find(k => low.includes(k.toLowerCase())) || Object.keys(TOURS).find(k => low.includes(k.split(" ")[0].toLowerCase()));
+  if (tour) $("fTour").value = tour;
+  $("fAcc").checked = /accommodation|malazi|hotel|lodge/i.test(t);
+  updPrice();
+  toast("Details filled in. Check them, then press Confirm.");
+};
+
+$("tBody").onclick = async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const id = b.dataset.id, a = b.dataset.a, bk = B.find(x => x.id === id); if (!bk) return;
+  try {
+    if (a === "req") {
+      const reason = prompt("Why do you want to cancel " + id + "?");
+      if (!reason || reason.trim().length < 3) return;
+      await addDoc(collection(db, "requests"), { bid: id, by: me.name, reason: reason.trim(), status: "open", at: serverTimestamp() });
+      addLog(me.name + " requested cancel of " + id); toast("Request sent to the boss.");
+    } else if (!boss()) return;
+    else if (a === "paid") { await updateDoc(doc(db, "bookings", id), { status: "Paid" }); addLog("Boss marked " + id + " as Paid"); }
+    else if (a === "cancel") { await updateDoc(doc(db, "bookings", id), { status: "Cancel" }); addLog("Boss cancelled " + id); }
+    else if (a === "del") { if (!confirm("Delete " + id + " permanently?")) return; await deleteDoc(doc(db, "bookings", id)); addLog("Boss deleted " + id); }
+  } catch (err) { toast("Error: " + (err.code || err.message)); }
+};
+
+$("reqBox").onclick = async e => {
+  const b = e.target.closest("button"); if (!b || !boss()) return;
+  const r = R.find(x => x.rid === b.dataset.rid); if (!r) return;
+  try {
+    if (b.dataset.a === "accept") {
+      await updateDoc(doc(db, "bookings", r.bid), { status: "Cancel" }).catch(() => {});
+      await updateDoc(doc(db, "requests", r.rid), { status: "accepted" });
+      addLog("Boss accepted cancel of " + r.bid);
+    } else {
+      await updateDoc(doc(db, "requests", r.rid), { status: "rejected" });
+      addLog("Boss rejected cancel of " + r.bid);
+    }
+  } catch (err) { toast("Error: " + (err.code || err.message)); }
+};
+
+/* ---------- Staff management (boss) ---------- */
+$("stAdd").onclick = async () => {
+  if (!boss()) return;
+  const name = $("sName").value.trim(), login = slug($("sLogin").value), pass = $("sPass").value;
+  if (!name || !login || pass.length < 6) { toast("Enter a name, a username and a password of 6+ characters."); return; }
+  if (login === "bosi" || U.some(u => u.login === login)) { toast("That username is already taken."); return; }
+  if (U.filter(u => u.role !== "boss").length >= 6) { toast("Maximum 6 staff."); return; }
+  $("stAdd").disabled = true;
+  try {
+    const second = initializeApp(cfg, "s" + Date.now()), a2 = getAuth(second);
+    const c = await createUserWithEmailAndPassword(a2, emailOf(login), pass);
+    await signOut(a2);
+    await setDoc(doc(db, "users", c.user.uid), { name, login, email: emailOf(login), role: "staff", msg: "" });
+    addLog("Boss registered staff " + name + " (" + login + ")");
+    ["sName", "sLogin", "sPass"].forEach(i => $(i).value = "");
+    toast(name + " added. Username: " + login);
+  } catch (e) {
+    toast(e.code === "auth/email-already-in-use" ? "That username already has an account. Use a new one." : "Error: " + (e.code || e.message));
+  }
+  $("stAdd").disabled = false;
+};
+
+$("stBody").onclick = async e => {
+  const b = e.target.closest("button"); if (!b || !boss()) return;
+  const u = U.find(x => x.uid === b.dataset.u); if (!u) return;
+  try {
+    if (b.dataset.a === "unlock") { await setDoc(doc(db, "locks", u.login), { fails: 0, locked: false }); addLog("Boss unlocked " + u.login); }
+    else if (b.dataset.a === "msg") {
+      const m = prompt("Message for " + u.name + " (shown when they sign in):", u.msg || "");
+      if (m === null) return;
+      await updateDoc(doc(db, "users", u.uid), { msg: m.trim() }); addLog("Boss sent a message to " + u.name);
+    } else if (b.dataset.a === "rm") {
+      if (!confirm("Remove " + u.name + "? They will no longer be able to use the system.")) return;
+      await deleteDoc(doc(db, "users", u.uid)); addLog("Boss removed " + u.name);
+    }
+    toast("Done.");
+  } catch (err) { toast("Error: " + (err.code || err.message)); }
+};
+
+/* ---------- WhatsApp / keyboard helpers ---------- */
+$("wa").addEventListener("keydown", e => { if (e.key === "Enter" && e.ctrlKey) $("waBtn").click(); });
+</script>
+</body>
+</html>
